@@ -205,7 +205,7 @@ def get_vehicle_by_vin(vin):
         if not record:
             return make_response(jsonify({"error": f"Vehicle with vin {vin} does not exist"}), 404)
 
-        vehicle = [dict(record)]
+        vehicle = dict(record)
 
         return make_response(jsonify({"data": vehicle}), 200)
 

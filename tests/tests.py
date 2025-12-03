@@ -69,9 +69,7 @@ def test_get_vehicles_empty(client):
     assert isinstance(data["data"], list)
     assert len(data["data"]) == 0
 
-
 def test_get_vehicles_with_data(client):
-
     vin1 = insert_test_vehicle(vin="VIN-1", manufacturer_name="Honda")
     vin2 = insert_test_vehicle(vin="VIN-2", manufacturer_name="Toyota")
 
@@ -116,7 +114,6 @@ def test_create_vehicle_success(client):
     list_data = list_response.get_json()
     vins = [v["vin"] for v in list_data["data"]]
     assert created["vin"] in vins
-
 
 def test_create_vehicle_non_json_body(client):
     response = client.post(
@@ -189,10 +186,7 @@ def test_get_vehicle_by_vin_found(client):
 
     data = response.get_json()
     assert "data" in data
-    vehicles = data["data"]
-    assert len(vehicles) == 1
-
-    vehicle = vehicles[0]
+    vehicle = data["data"]
     assert vehicle["vin"] == vin
 
 def test_get_vehicle_by_vin_not_found(client):
@@ -222,7 +216,6 @@ def test_update_vehicle_success(client):
     updated = data["data"]
 
     assert updated["vin"] == vin
-
 
 def test_update_vehicle_non_json_body(client):
     vin = insert_test_vehicle(vin="VIN-UPDATE-NOJSON")
@@ -268,7 +261,6 @@ def test_update_vehicle_not_found(client):
     assert "error" in data
     assert "does not exist" in data["error"]
 
-
 def test_delete_vehicle_success(client):
     vin = insert_test_vehicle()
 
@@ -277,7 +269,6 @@ def test_delete_vehicle_success(client):
 
     get_response = client.get(f"/vehicle/{vin}")
     assert get_response.status_code == 404
-
 
 def test_delete_vehicle_not_found(client):
     response = client.delete("/vehicle/NON_EXISTENT_VIN")
