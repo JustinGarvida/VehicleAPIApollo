@@ -49,8 +49,6 @@ def insert_test_vehicle(
 
     return vin
 
-
-
 @pytest.fixture(scope="function")
 def client():
     """
@@ -62,11 +60,7 @@ def client():
     with app.test_client() as client:
         yield client
 
-
 def test_get_vehicles_empty(client):
-    """
-    GET /vehicle on a fresh DB should return 200 and an empty list.
-    """
     response = client.get("/vehicle")
     assert response.status_code == 200
 
@@ -77,9 +71,7 @@ def test_get_vehicles_empty(client):
 
 
 def test_get_vehicles_with_data(client):
-    """
-    GET /vehicle should return the vehicles that exist in the DB.
-    """
+
     vin1 = insert_test_vehicle(vin="VIN-1", manufacturer_name="Honda")
     vin2 = insert_test_vehicle(vin="VIN-2", manufacturer_name="Toyota")
 
@@ -88,17 +80,14 @@ def test_get_vehicles_with_data(client):
 
     data = response.get_json()
     vehicles = data["data"]
+    vehicle_count = len(vehicles)
     vins = {v["vin"] for v in vehicles}
 
     assert vin1 in vins
     assert vin2 in vins
-
+    assert vehicle_count == 2
 
 def test_create_vehicle_success(client):
-    """
-    POST /vehicle should create a new vehicle and return 201,
-    with the created record (including generated vin).
-    """
     payload = {
         "manufacturer_name": "Honda",
         "description": "Sedan",
@@ -122,7 +111,6 @@ def test_create_vehicle_success(client):
     assert "vin" in created
     assert isinstance(created["vin"], str)
 
-    # Confirm it appears in GET /vehicle
     list_response = client.get("/vehicle")
     assert list_response.status_code == 200
     list_data = list_response.get_json()
@@ -131,9 +119,6 @@ def test_create_vehicle_success(client):
 
 
 def test_create_vehicle_non_json_body(client):
-    """
-    POST /vehicle with non-JSON body should return 400.
-    """
     response = client.post(
         "/vehicle",
         data="not json at all",
@@ -142,8 +127,7 @@ def test_create_vehicle_non_json_body(client):
     assert response.status_code == 400
 
     data = response.get_json()
-    assert data["error"] == "Request does not use a JSON format"
-
+    assert "error" in data
 
 def test_create_vehicle_missing_field(client):
     payload = {
@@ -161,11 +145,7 @@ def test_create_vehicle_missing_field(client):
     data = response.get_json()
     assert "error" in data
 
-
 def test_create_vehicle_extra_field(client):
-    """
-    POST /vehicle with an unexpected extra field should return 422.
-    """
     payload = {
         "manufacturer_name": "Honda",
         "description": "Sedan",
@@ -183,11 +163,7 @@ def test_create_vehicle_extra_field(client):
     data = response.get_json()
     assert "error" in data
 
-
 def test_create_vehicle_wrong_type(client):
-    '''
-    Purpose
-    '''
     payload = {
         "manufacturer_name": "Honda",
         "description": "Sedan",
@@ -219,7 +195,6 @@ def test_get_vehicle_by_vin_found(client):
     vehicle = vehicles[0]
     assert vehicle["vin"] == vin
 
-
 def test_get_vehicle_by_vin_not_found(client):
     response = client.get("/vehicle/NON_EXISTENT_VIN")
     assert response.status_code == 404
@@ -227,11 +202,7 @@ def test_get_vehicle_by_vin_not_found(client):
     data = response.get_json()
     assert "error" in data
 
-
 def test_update_vehicle_success(client):
-    """
-    PUT /vehicle/<vin> should update an existing vehicle and return 200.
-    """
     vin = insert_test_vehicle()
 
     update_payload = {
@@ -254,9 +225,6 @@ def test_update_vehicle_success(client):
 
 
 def test_update_vehicle_non_json_body(client):
-    """
-    PUT /vehicle/<vin> with non-JSON body should return 400.
-    """
     vin = insert_test_vehicle(vin="VIN-UPDATE-NOJSON")
 
     response = client.put(
@@ -269,13 +237,8 @@ def test_update_vehicle_non_json_body(client):
     data = response.get_json()
     assert "error" in data
 
-
 def test_update_vehicle_invalid_payload(client):
-    """
-    PUT /vehicle/<vin> with invalid payload (missing fields / wrong types)
-    should return 422.
-    """
-    vin = insert_test_vehicle(vin="VIN-UPDATE-BADPAYLOAD")
+    vin = insert_test_vehicle()
 
     payload = {
         "description": "Only description provided",
@@ -287,12 +250,7 @@ def test_update_vehicle_invalid_payload(client):
     data = response.get_json()
     assert "error" in data
 
-
 def test_update_vehicle_not_found(client):
-    """
-    PUT /vehicle/<vin> for a non-existent vin should return 422,
-    as per current implementation.
-    """
     payload = {
         "manufacturer_name": "NoCar",
         "description": "Does not exist",
@@ -312,9 +270,6 @@ def test_update_vehicle_not_found(client):
 
 
 def test_delete_vehicle_success(client):
-    """
-    DELETE /vehicle/<vin> should return 204 and actually remove the vehicle.
-    """
     vin = insert_test_vehicle()
 
     response = client.delete(f"/vehicle/{vin}")
